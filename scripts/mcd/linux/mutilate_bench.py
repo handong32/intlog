@@ -12,8 +12,8 @@ import itertools
 import argparse
 import shutil
 
-MASTER = "192.168.1.9"
-CSERVER = "192.168.1.11"
+SERVER = "192.168.1.9"
+CLIENT = "192.168.1.11"
 ITR = 1
 WTHRESH = 0
 PTHRESH = 0
@@ -289,51 +289,51 @@ def updateNIC():
     #return
 
     # RSC_DELAY
-    p1 = Popen(["ssh", CSERVER2, "ethtool -C enp4s0f1 RSCDELAY", str(RSC_DELAY)], stdout=PIPE, stderr=PIPE)
+    p1 = Popen(["ssh", SERVER, "ethtool -C enp4s0f1 RSCDELAY", str(RSC_DELAY)], stdout=PIPE, stderr=PIPE)
     p1.communicate()
 
     # MAXDESC
-    p1 = Popen(["ssh", CSERVER2, "ethtool -C enp4s0f1 MAXDESC", str(MAX_DESC)], stdout=PIPE, stderr=PIPE)
+    p1 = Popen(["ssh", SERVER, "ethtool -C enp4s0f1 MAXDESC", str(MAX_DESC)], stdout=PIPE, stderr=PIPE)
     p1.communicate()
 
     # BSIZEPKT
-    p1 = Popen(["ssh", CSERVER2, "ethtool -C enp4s0f1 BSIZEPACKET", str(BSIZEPKT)], stdout=PIPE, stderr=PIPE)
+    p1 = Popen(["ssh", SERVER, "ethtool -C enp4s0f1 BSIZEPACKET", str(BSIZEPKT)], stdout=PIPE, stderr=PIPE)
     p1.communicate()
 
     # BSIZEHDR
-    p1 = Popen(["ssh", CSERVER2, "ethtool -C enp4s0f1 BSIZEHEADER", str(BSIZEHDR)], stdout=PIPE, stderr=PIPE)
+    p1 = Popen(["ssh", SERVER, "ethtool -C enp4s0f1 BSIZEHEADER", str(BSIZEHDR)], stdout=PIPE, stderr=PIPE)
     p1.communicate()
 
     # RXRING
-    p1 = Popen(["ssh", CSERVER2, "ethtool -G enp4s0f1 rx", str(RXRING)], stdout=PIPE, stderr=PIPE)
+    p1 = Popen(["ssh", SERVER, "ethtool -G enp4s0f1 rx", str(RXRING)], stdout=PIPE, stderr=PIPE)
     p1.communicate()
 
     # TXRING
-    p1 = Popen(["ssh", CSERVER2, "ethtool -G enp4s0f1 tx", str(TXRING)], stdout=PIPE, stderr=PIPE)
+    p1 = Popen(["ssh", SERVER, "ethtool -G enp4s0f1 tx", str(TXRING)], stdout=PIPE, stderr=PIPE)
     p1.communicate()
         
-    p1 = Popen(["ssh", CSERVER2, "ethtool -C enp4s0f1 WTHRESH", str(WTHRESH)], stdout=PIPE, stderr=PIPE)
+    p1 = Popen(["ssh", SERVER, "ethtool -C enp4s0f1 WTHRESH", str(WTHRESH)], stdout=PIPE, stderr=PIPE)
     p1.communicate()
     
-    p1 = Popen(["ssh", CSERVER2, "ethtool -C enp4s0f1 PTHRESH", str(PTHRESH)], stdout=PIPE, stderr=PIPE)
+    p1 = Popen(["ssh", SERVER, "ethtool -C enp4s0f1 PTHRESH", str(PTHRESH)], stdout=PIPE, stderr=PIPE)
     p1.communicate()
 
-    p1 = Popen(["ssh", CSERVER2, "ethtool -C enp4s0f1 HTHRESH", str(HTHRESH)], stdout=PIPE, stderr=PIPE)
+    p1 = Popen(["ssh", SERVER, "ethtool -C enp4s0f1 HTHRESH", str(HTHRESH)], stdout=PIPE, stderr=PIPE)
     p1.communicate()
 
     # DTXMXSZRQ 
-    p1 = Popen(["ssh", CSERVER2, "ethtool -C enp4s0f1 DTXMXSZRQ", str(DTXMXSZRQ)], stdout=PIPE, stderr=PIPE)
+    p1 = Popen(["ssh", SERVER, "ethtool -C enp4s0f1 DTXMXSZRQ", str(DTXMXSZRQ)], stdout=PIPE, stderr=PIPE)
     p1.communicate()
 
     # DCA
-    p1 = Popen(["ssh", CSERVER2, "ethtool -C enp4s0f1 DCA", str(DCA)], stdout=PIPE, stderr=PIPE)
+    p1 = Popen(["ssh", SERVER, "ethtool -C enp4s0f1 DCA", str(DCA)], stdout=PIPE, stderr=PIPE)
     p1.communicate()
     
-    p1 = Popen(["ssh", CSERVER2, "ifdown enp4s0f1"], stdout=PIPE, stderr=PIPE)
+    p1 = Popen(["ssh", SERVER, "ifdown enp4s0f1"], stdout=PIPE, stderr=PIPE)
     p1.communicate()
     time.sleep(1)
     
-    p1 = Popen(["ssh", CSERVER2, "ifup enp4s0f1"], stdout=PIPE, stderr=PIPE)
+    p1 = Popen(["ssh", SERVER, "ifup enp4s0f1"], stdout=PIPE, stderr=PIPE)
     p1.communicate()
     time.sleep(1)
 
@@ -343,20 +343,10 @@ def runLocalCommandOut(com):
     p1.communicate()
     #print("\t"+com, "->\n", p1.communicate()[0].strip())
     
-def runRemoteCommandOut(com):
-    #print(com)
-    p1 = Popen(["ssh", MASTER, com], stdout=PIPE)
-    p1.communicate()
-    #print("\tssh "+MASTER, com, "->\n", p1.communicate()[0].strip())
-
 def runLocalCommand(com):
     #print(com)
     p1 = Popen(list(filter(None, com.strip().split(' '))), stdout=PIPE)
     
-def runRemoteCommand(com):
-    #print(com)
-    p1 = Popen(["ssh", MASTER, com])
-
 def runRemoteCommands(com, server):
     #print(com)
     p1 = Popen(["ssh", server, com])
@@ -371,7 +361,7 @@ def runRemoteCommandGet(com, server):
 ###################################################
 def setITR(v):
     global ITR
-    p1 = Popen(["ssh", CSERVER, "/app/ethtool-4.5/ethtool -C eth0 rx-usecs", v], stdout=PIPE, stderr=PIPE)
+    p1 = Popen(["ssh", SERVER, "/app/ethtool-4.5/ethtool -C eth0 rx-usecs", v], stdout=PIPE, stderr=PIPE)
     p1.communicate()    
     time.sleep(0.5)
     ITR = int(v)
@@ -381,7 +371,7 @@ def setITR(v):
 #################################################
 def setRAPL(v):
     global RAPL
-    p1 = Popen(["ssh", CSERVER, "/app/uarch-configure/rapl-read/rapl-power-mod", v], stdout=PIPE, stderr=PIPE)
+    p1 = Popen(["ssh", SERVER, "/app/uarch-configure/rapl-read/rapl-power-mod", v], stdout=PIPE, stderr=PIPE)
     p1.communicate()
     time.sleep(0.5)
     RAPL = int(v)
@@ -392,26 +382,26 @@ def setRAPL(v):
 ###################################################
 def setDVFS(v):
     global DVFS
-    p1 = Popen(["ssh", CSERVER, "wrmsr -a 0x199", v], stdout=PIPE, stderr=PIPE)
+    p1 = Popen(["ssh", SERVER, "wrmsr -a 0x199", v], stdout=PIPE, stderr=PIPE)
     p1.communicate()
     time.sleep(0.5)
     DVFS = v
 
 def cleanLogs():
     for i in range(0, 16):                    
-        runRemoteCommandGet("cat /proc/ixgbe_stats/core/"+str(i)+" &> /dev/null", "192.168.1.9")
+        runRemoteCommandGet("cat /proc/ixgbe_stats/core/"+str(i)+" &> /dev/null", SERVER)
         if VERBOSE:
             print("cleanLogs", i)
             
 def printLogs():
     for i in range(0, 16):
-        runRemoteCommandGet("cat /proc/ixgbe_stats/core/"+str(i)+" &> /app/mcd_dmesg."+str(i), "192.168.1.9")
+        runRemoteCommandGet("cat /proc/ixgbe_stats/core/"+str(i)+" &> /app/mcd_dmesg."+str(i), SERVER)
         if VERBOSE:
             print("printLogs", i)
 
 def getLogs():
     for i in range(0, 16):
-        runLocalCommandOut("scp -r 192.168.1.9:/app/mcd_dmesg."+str(i)+" linux.mcd.dmesg."+str(NREPEAT)+"_"+str(i)+"_"+str(ITR)+"_"+str(DVFS)+"_"+str(RAPL)+"_"+str(TARGET_QPS))        
+        runLocalCommandOut("scp -r "+SERVER+":/app/mcd_dmesg."+str(i)+" linux.mcd.dmesg."+str(NREPEAT)+"_"+str(i)+"_"+str(ITR)+"_"+str(DVFS)+"_"+str(RAPL)+"_"+str(TARGET_QPS))        
         #runLocalCommandOut("gzip -f9 mcd_dmesg."+str(NREPEAT)+"_"+str(i-1)+"_"+str(ITR)+"_"+str(DVFS)+"_"+str(RAPL)+"_"+str(TARGET_QPS))
         if VERBOSE:
             print("getLogs", i)
@@ -433,28 +423,34 @@ def runBench(mqps):
     #########################
 
     # check if memcached server is already running
-    is_running_mcd = runRemoteCommandGet("pgrep memcached", "192.168.1.9")
+    is_running_mcd = runRemoteCommandGet("pgrep memcached", SERVER)
     if is_running_mcd:
         print("already running mcd")
     else:
-        runRemoteCommands("taskset -c 0-15 /app/memcached/memcached -u nobody -t 16 -m 32G -c 8192 -b 8192 -l 192.168.1.9 -B binary", "192.168.1.9")        
+        ## launch mcd server
+        runRemoteCommands("taskset -c 0-15 /app/memcached/memcached -u nobody -t 16 -m 32G -c 8192 -b 8192 -l 192.168.1.9 -B binary", SERVER)
         time.sleep(1)
-        # init mcd with some data
-        runRemoteCommandGet("taskset -c 0 /app/mutilate/mutilate --binary -s 192.168.1.9 --loadonly -K fb_key -V fb_value", "192.168.1.11")
-        runRemoteCommandGet("taskset -c 0 /app/mutilate/mutilate --binary -s 192.168.1.9 --loadonly -K fb_key -V fb_value", "192.168.1.11")
-        runRemoteCommandGet("taskset -c 0 /app/mutilate/mutilate --binary -s 192.168.1.9 --loadonly -K fb_key -V fb_value", "192.168.1.11")
-        runRemoteCommandGet("taskset -c 0 /app/mutilate/mutilate --binary -s 192.168.1.9 --loadonly -K fb_key -V fb_value", "192.168.1.11")    
-    time.sleep(1)
+        
+        # init mcd server with prelim data
+        runRemoteCommandGet("taskset -c 0 /app/mutilate/mutilate --binary -s 192.168.1.9 --loadonly -K fb_key -V fb_value", CLIENT)
+        runRemoteCommandGet("taskset -c 0 /app/mutilate/mutilate --binary -s 192.168.1.9 --loadonly -K fb_key -V fb_value", CLIENT)
+        runRemoteCommandGet("taskset -c 0 /app/mutilate/mutilate --binary -s 192.168.1.9 --loadonly -K fb_key -V fb_value", CLIENT)
+        runRemoteCommandGet("taskset -c 0 /app/mutilate/mutilate --binary -s 192.168.1.9 --loadonly -K fb_key -V fb_value", CLIENT)
+        time.sleep(1)
 
-    cleanLogs()    
-    output = runRemoteCommandGet("taskset -c 0 /app/mutilate/mutilate --binary -s 192.168.1.9 --noload --agent=192.168.1.106,192.168.1.107,192.168.1.37,192.168.1.38 --threads=1 "+WORKLOADS[TYPE]+" --depth=4 --measure_depth=1 --connections=16 --measure_connections=32 --measure_qps=2000 --qps="+str(mqps)+" --time="+str(TIME), "192.168.1.11")
+    ## reset logs
+    cleanLogs()
+
+    ## run benchmark
+    output = runRemoteCommandGet("taskset -c 0 /app/mutilate/mutilate --binary -s 192.168.1.9 --noload --agent=192.168.1.106,192.168.1.107,192.168.1.37,192.168.1.38 --threads=1 "+WORKLOADS[TYPE]+" --depth=4 --measure_depth=1 --connections=16 --measure_connections=32 --measure_qps=2000 --qps="+str(mqps)+" --time="+str(TIME), CLIENT)
 
     # dumps rdtsc timestamps of mcd server -- helps to parse log for timestamps that only impact application runtime
-    runRemoteCommands("killall -USR2 memcached", "192.168.1.9")
+    runRemoteCommands("killall -USR2 memcached", SERVER)
     
     if VERBOSE:
         print("Finished executing memcached")
 
+    ## store output file
     read_5th = ''
     read_10th = ''
     read_50th = ''
