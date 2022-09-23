@@ -3,13 +3,13 @@
 ## Hardware Setup
 We assume the following IP address mappings in `silo_bench.py`, connected together via VLAN:
 ```
-memcached server -> 192.168.1.9: Intel(R) Xeon(R) CPU E5-2690 0 @ 2.90GHz, 126 GB, Intel(R) 10 Gigabit Network Connection
+mcdsilo server -> 192.168.1.9: Intel(R) Xeon(R) CPU E5-2690 0 @ 2.90GHz, 126 GB, Intel(R) 10 Gigabit Network Connection
 mutilate client -> 192.168.1.11: Intel(R) Xeon(R) CPU E5-2690 0 @ 2.90GHz, 126 GB, Intel(R) 10 Gigabit Network Connection
 mutilate agent -> 192.168.1.37: Intel(R) Xeon(R) CPU E5-2660 0 @ 2.20GHz, 126 GB, Intel(R) 10 Gigabit Network Connectio
 mutilate agent -> 192.168.1.38: Intel(R) Xeon(R) CPU E5-2690 0 @ 2.90GHz, 126 GB, Intel(R) 10 Gigabit Network Connectio
 ```
 
-## Example mutilate_bench.py run:
+## Example silo_bench.py run:
 ```
 $ python3 -u silo --help
 usage: silo_bench.py [-h] [--rapl RAPL] [--itr ITR] [--dvfs DVFS]
