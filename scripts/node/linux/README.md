@@ -1,7 +1,7 @@
 # Scripts for running nodejs webserver in Linux
 
 ## Hardware Setup
-We assume the following IP address mappings in `mutilate_bench.py`, connected together via VLAN:
+We assume the following IP address mappings in `nodejs_bench.py`, connected together via VLAN:
 ```
 NodeJS Webserver -> 192.168.1.9: Intel(R) Xeon(R) CPU E5-2690 0 @ 2.90GHz, 126 GB, Intel(R) 10 Gigabit Network Connection
 wrk client -> 192.168.1.11: Intel(R) Xeon(R) CPU E5-2690 0 @ 2.90GHz, 126 GB, Intel(R) 10 Gigabit Network Connection
