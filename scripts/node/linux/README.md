@@ -1,4 +1,4 @@
-# Scripts for running memcached in Linux
+# Scripts for running nodejs webserver in Linux
 
 ## Hardware Setup
 We assume the following IP address mappings in `mutilate_bench.py`, connected together via VLAN:
