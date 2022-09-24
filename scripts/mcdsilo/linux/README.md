@@ -9,6 +9,11 @@ mutilate agent -> 192.168.1.37: Intel(R) Xeon(R) CPU E5-2660 0 @ 2.20GHz, 126 GB
 mutilate agent -> 192.168.1.38: Intel(R) Xeon(R) CPU E5-2690 0 @ 2.90GHz, 126 GB, Intel(R) 10 Gigabit Network Connectio
 ```
 
+## Software Setup
+mcdsilo linux server: `https://github.com/ix-project/servers/tree/156b7224b186ff92316d1fd7ab8723986587e36a`
+
+mutilate: `https://github.com/ix-project/mutilate`
+
 ## Example silo_bench.py run:
 ```
 $ python3 -u silo --help
