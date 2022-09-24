@@ -7,6 +7,11 @@ NodeJS Webserver -> 192.168.1.9: Intel(R) Xeon(R) CPU E5-2690 0 @ 2.90GHz, 126 G
 wrk client -> 192.168.1.11: Intel(R) Xeon(R) CPU E5-2690 0 @ 2.90GHz, 126 GB, Intel(R) 10 Gigabit Network Connection
 ```
 
+## Software Setup
+```
+wrk client: https://github.com/wg/wrk
+```
+
 ## Example nodejs_bench.py run:
 ```
 $ python nodejs_bench.py --help
