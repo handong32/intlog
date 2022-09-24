@@ -12,6 +12,11 @@ mutilate agent -> 192.168.1.106: Intel(R) Xeon(R) CPU E5-2650 v2 @ 2.60GHz, 126 
 mutilate agent -> 192.168.1.107: Intel(R) Xeon(R) CPU E5-2650 v2 @ 2.60GHz, 126 GB, Intel(R) 10 Gigabit Network Connection
 ```
 
+## Software Setup
+memccached server: `https://github.com/memcached/memcached`
+
+mutilate: `https://github.com/ix-project/mutilate`
+
 ## Example mutilate_bench.py run:
 ```
 $ python3 -u mutilate_bench --help
