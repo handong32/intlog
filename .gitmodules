@@ -2,3 +2,7 @@
 	path = linux/linux
 	url = https://github.com/handong32/linux/
 	branch = cpuidle_changes
+[submodule "ebbrt/EbbRT"]
+	path = ebbrt/EbbRT
+	url = https://github.com/handong32/EbbRT
+	branch = baremetalNIC
