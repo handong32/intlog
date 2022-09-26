@@ -12,7 +12,7 @@ To boot linux with its DVFS frequency governor disabled in order to *static* set
 
 Note: Depending on your kernel version and Linux flavor, DVFS may be disabled from userspace
 
-## NIC level logging
+## NIC level logging and kernel module
 The `ixgbe` device driver changes to instrument logging in the NIC can be found at:
 ```
 linux/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
@@ -21,3 +21,13 @@ linux/drivers/net/ethernet/intel/ixgbe/ixgbe.h
 
 `IXGBE_LOG_SIZE` in `ixgbe.h` is hard-coded to limit amount of memory is used to store the traces. The function for collecting traces is found at `ixgbe_msix_clean_rings` in `ixgbe_main.c`.
 
+## Accessing trace logs
+Once the `ixgbe` kernel module has been inserted, it creates entries in `procfs`:
+
+```
+$ cat /proc/ixgbe_stats/core/0
+$ cat /proc/ixgbe_stats/core/1
+....
+....
+$ cat /proc/ixgbe_stats/core/N
+```
