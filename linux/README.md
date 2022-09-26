@@ -19,5 +19,5 @@ linux/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
 linux/drivers/net/ethernet/intel/ixgbe/ixgbe.h
 ```
 
-`IXGBE_LOG_SIZE` is hard-coded to limit amount of memory is used to store the traces. The function for collecting traces is found at `ixgbe_msix_clean_rings`.
+`IXGBE_LOG_SIZE` in `ixgbe.h` is hard-coded to limit amount of memory is used to store the traces. The function for collecting traces is found at `ixgbe_msix_clean_rings` in `ixgbe_main.c`.
 
