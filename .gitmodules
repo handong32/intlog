@@ -1,0 +1,4 @@
+[submodule "linux/linux"]
+	path = linux/linux
+	url = https://github.com/handong32/linux/
+	branch = cpuidle_changes
