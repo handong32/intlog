@@ -22,3 +22,7 @@
 	path = scripts/mcdsilo/ebbrt/EbbRT-Silo
 	url = git@github.com:handong32/EbbRT-Silo.git
 	branch = master
+[submodule "tools/pcm_lite"]
+	path = tools/pcm_lite
+	url = git@github.com:handong32/pcm_lite.git
+	branch = master
