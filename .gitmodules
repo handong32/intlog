@@ -18,3 +18,7 @@
 	path = scripts/mcd/ebbrt/EbbRT-memcached
 	url = git@github.com:handong32/EbbRT-memcached.git
 	branch = baremetal
+[submodule "scripts/mcdsilo/ebbrt/EbbRT-Silo"]
+	path = scripts/mcdsilo/ebbrt/EbbRT-Silo
+	url = git@github.com:handong32/EbbRT-Silo.git
+	branch = master
