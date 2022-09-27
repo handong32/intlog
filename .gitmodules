@@ -14,3 +14,7 @@
 	path = scripts/node/ebbrt/EbbRT-node
 	url = git@github.com:handong32/EbbRT-node.git
 	branch = master
+[submodule "scripts/mcd/ebbrt/EbbRT-memcached"]
+	path = scripts/mcd/ebbrt/EbbRT-memcached
+	url = git@github.com:handong32/EbbRT-memcached.git
+	branch = baremetal
