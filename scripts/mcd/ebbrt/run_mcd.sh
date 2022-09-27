@@ -27,6 +27,7 @@ function reboot
     ssh 192.168.1.11 pkill mutilate
     ssh 192.168.1.37 pkill mutilate
     ssh 192.168.1.38 pkill mutilate
+    ssh 192.168.1.104 pkill mutilate
     ssh 192.168.1.106 pkill mutilate
     ssh 192.168.1.107 pkill mutilate
     echo "Sleeping 5 mins"

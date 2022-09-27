@@ -123,7 +123,8 @@ def setMAXTXD(s):
     
 def runBench(mqps):
     runRemoteCommandGet("pkill mutilate", "192.168.1.106")
-    runRemoteCommandGet("pkill mutilate", "192.168.1.107")    
+    runRemoteCommandGet("pkill mutilate", "192.168.1.107")
+    runRemoteCommandGet("pkill mutilate", "192.168.1.104")    
     runRemoteCommandGet("pkill mutilate", "192.168.1.38")
     runRemoteCommandGet("pkill mutilate", "192.168.1.37")
     runRemoteCommandGet("pkill mutilate", "192.168.1.11")
@@ -132,6 +133,7 @@ def runBench(mqps):
     
     runRemoteCommands("/app/mutilate/mutilate --agentmode --threads=16", "192.168.1.37")
     runRemoteCommands("/app/mutilate/mutilate --agentmode --threads=16", "192.168.1.38")
+    runRemoteCommands("/app/mutilate/mutilate --agentmode --threads=16", "192.168.1.104")
     runRemoteCommands("/app/mutilate/mutilate --agentmode --threads=16", "192.168.1.106")
     runRemoteCommands("/app/mutilate/mutilate --agentmode --threads=16", "192.168.1.107")
     
@@ -139,11 +141,11 @@ def runBench(mqps):
     print("mutilate agentmode done")
 
     localout = runLocalCommandGet("socat - TCP4:192.168.1.9:5002", "start,0")    
-    output = runRemoteCommandGet("taskset -c 0 /app/mutilate/mutilate --binary -s 192.168.1.9 --noload --agent=192.168.1.106,192.168.1.107,192.168.1.37,192.168.1.38 --threads=1 "+WORKLOADS[TYPE]+" --depth=4 --measure_depth=1 --connections=16 --measure_connections=32 --measure_qps=2000 --qps="+str(mqps)+" --time="+str(TIME), "192.168.1.11")
+    output = runRemoteCommandGet("taskset -c 0 /app/mutilate/mutilate --binary -s 192.168.1.9 --noload --agent=192.168.1.104,192.168.1.106,192.168.1.107,192.168.1.37,192.168.1.38 --threads=1 "+WORKLOADS[TYPE]+" --depth=4 --measure_depth=1 --connections=16 --measure_connections=32 --measure_qps=2000 --qps="+str(mqps)+" --time="+str(TIME), "192.168.1.11")
     
     #--keysize=fb_key --valuesize=fb_value
     #normal:400,2 -V normal:8000,2
-    #output = runRemoteCommandGet('taskset -c 0 /app/mutilate/mutilate --binary -s 192.168.1.9 --noload --agent=192.168.1.106,192.168.1.107,192.168.1.37,192.168.1.38 --threads=1 --keysize=normal:400,2 -V --valuesize=normal:8000,2 --update=0.25 --depth=4 --measure_depth=1 --connections=16 --measure_connections=32 --measure_qps=2000 --qps='+str(mqps)+' --time='+str(TIME), '192.168.1.11')
+    #output = runRemoteCommandGet('taskset -c 0 /app/mutilate/mutilate --binary -s 192.168.1.9 --noload --agent=192.168.1.104,192.168.1.106,192.168.1.107,192.168.1.37,192.168.1.38 --threads=1 --keysize=normal:400,2 -V --valuesize=normal:8000,2 --update=0.25 --depth=4 --measure_depth=1 --connections=16 --measure_connections=32 --measure_qps=2000 --qps='+str(mqps)+' --time='+str(TIME), '192.168.1.11')
     
     localout = runLocalCommandGet("socat - TCP4:192.168.1.9:5002", "stop,0")
     read_5th = ''
