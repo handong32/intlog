@@ -6,3 +6,7 @@
 	path = ebbrt/EbbRT
 	url = https://github.com/handong32/EbbRT
 	branch = baremetalNIC
+[submodule "scripts/netpipe/ebbrt/EbbRT-netpipe"]
+	path = scripts/netpipe/ebbrt/EbbRT-netpipe
+	url = https://github.com/handong32/EbbRT-netpipe
+	branch = master
