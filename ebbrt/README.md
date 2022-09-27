@@ -12,6 +12,9 @@ $ mkdir ~\sysroot_ebbrt\native
 ## build ebbrt sysroot
 $ cd ~\sysroot_ebbrt\build && make -j16 -f ~/EbbRT/toolchain/Makefile SYSROOT=~/sysroot_ebbrt/native/
 ```
+## Booting on hardware 
+EbbRT baremetal was booted on a machine with the following specs: `Intel(R) Xeon(R) CPU E5-2690 0 @ 2.90GHz, 126 GB, Intel(R) 10 Gigabit Network Connection`
+Its NIC device driver *only* works with supported `ixgbe` 10 GbE 
 
 ## Hardware (9/27/2022)
 For historical purposes, the following OS and hardware was used to build EbbRT:
