@@ -88,4 +88,6 @@ service tftp
 	flags			= IPv4
 }
 
+[root@localhost ~]# systemctl start dhcpd
+[root@localhost ~]# systemctl start xinetd
 ```
