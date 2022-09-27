@@ -10,3 +10,7 @@
 	path = scripts/netpipe/ebbrt/EbbRT-netpipe
 	url = https://github.com/handong32/EbbRT-netpipe
 	branch = master
+[submodule "scripts/node/ebbrt/EbbRT-node"]
+	path = scripts/node/ebbrt/EbbRT-node
+	url = git@github.com:handong32/EbbRT-node.git
+	branch = master
