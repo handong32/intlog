@@ -92,7 +92,7 @@ function runEbbRT
 					    ssh 192.168.1.11 /app/mutilate/mutilate --binary -s 192.168.1.9 --loadonly -K fb_key -V fb_value
 					    sleep 1
 					    ## warmup run
-					    runMutilateBench --os ebbrt --bench mcd --qps 50000 --time 10 --itr 50 --rapl 135 --dvfs 0x1d00 --nrepeat 0
+					    runMutilateBench --os ebbrt --qps 50000 --time 10 --itr 50 --rapl 135 --dvfs 0x1d00 --nrepeat 0
 
 					    if alive; then
 						ssh 192.168.1.11 pkill mutilate
@@ -110,8 +110,8 @@ function runEbbRT
 				fi
 				
 				if [[ ${runBench} -eq 0  ]]; then		
-				    echo "runMutilateBench --os ebbrt --bench mcd --qps ${qps} --time 20 --itr ${itr} --rapl ${r} --dvfs ${dvfs} --nrepeat ${nrepeat} --sleep_state ${sleep_state}"
-				    runMutilateBench --os ebbrt --bench mcd --qps ${qps} --time 20 --itr ${itr} --rapl ${r} --dvfs ${dvfs} --nrepeat ${nrepeat} --sleep_state ${sleep_state}
+				    echo "runMutilateBench --os ebbrt --qps ${qps} --time 20 --itr ${itr} --rapl ${r} --dvfs ${dvfs} --nrepeat ${nrepeat} --sleep_state ${sleep_state}"
+				    runMutilateBench --os ebbrt --qps ${qps} --time 20 --itr ${itr} --rapl ${r} --dvfs ${dvfs} --nrepeat ${nrepeat} --sleep_state ${sleep_state}
 				    sleep 1
 				    if alive; then
 					rritr=$(( ${itr}*2 ))
