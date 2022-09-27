@@ -3,24 +3,21 @@
 ## Hardware Setup
 We assume the following IP address mappings in `mutilate_bench.py`, connected together via VLAN:
 ```
-memcached server -> 192.168.1.9: Intel(R) Xeon(R) CPU E5-2690 0 @ 2.90GHz, 126 GB, Intel(R) 10 Gigabit Network Connection
+mcd-silo server -> 192.168.1.9: Intel(R) Xeon(R) CPU E5-2690 0 @ 2.90GHz, 126 GB, Intel(R) 10 Gigabit Network Connection
 mutilate client -> 192.168.1.11: Intel(R) Xeon(R) CPU E5-2690 0 @ 2.90GHz, 126 GB, Intel(R) 10 Gigabit Network Connection
 mutilate agent -> 192.168.1.37: Intel(R) Xeon(R) CPU E5-2660 0 @ 2.20GHz, 126 GB, Intel(R) 10 Gigabit Network Connectio
 mutilate agent -> 192.168.1.38: Intel(R) Xeon(R) CPU E5-2690 0 @ 2.90GHz, 126 GB, Intel(R) 10 Gigabit Network Connectio
-mutilate agent -> 192.168.1.104: Intel(R) Xeon(R) CPU E5-2650 v2 @ 2.60GHz, 126 GB, Intel(R) 10 Gigabit Network Connection
-mutilate agent -> 192.168.1.106: Intel(R) Xeon(R) CPU E5-2650 v2 @ 2.60GHz, 126 GB, Intel(R) 10 Gigabit Network Connection
-mutilate agent -> 192.168.1.107: Intel(R) Xeon(R) CPU E5-2650 v2 @ 2.60GHz, 126 GB, Intel(R) 10 Gigabit Network Connection
 ```
 
 ## Software Setup
-memccached server: `https://github.com/handong32/EbbRT-memcached`
+memccached server: `https://github.com/handong32/EbbRT-Silo`
 
 mutilate: `https://github.com/ix-project/mutilate`
 
 
 ## Details of files
 
-`mutilate_bench.py`: Python wrapper to run `mutilate` benchmark against EbbRT-memcached
+`mutilate_bench.py`: Python wrapper to run `mutilate` benchmark against EbbRT-Silo
 
 `run_mcd.sh`: shell script wrapper to automate configurations of ITR, DVFS, RAPL for `mutilate_bench.py` 
 
