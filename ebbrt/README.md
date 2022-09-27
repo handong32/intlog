@@ -16,7 +16,10 @@ $ cd ~\sysroot_ebbrt\build && make -j16 -f ~/EbbRT/toolchain/Makefile SYSROOT=~/
 ## Hardware (9/27/2022)
 For historical purposes, the following OS and hardware was used to build EbbRT:
 ```
-32 Core AMD Opteron(TM) Processor 6272, 62 GB RAM
+32-Core AMD Opteron(TM) Processor 6272, 62 GB RAM
+
+$ uname -a
+Linux 4.4.0-62-generic #83-Ubuntu SMP Wed Jan 18 14:10:15 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux
 
 $ gcc --version
 gcc (Ubuntu 5.4.0-6ubuntu1~16.04.11) 5.4.0 20160609
