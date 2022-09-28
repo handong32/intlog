@@ -15,6 +15,37 @@ CRC 66a5975b
 Kernel: arch/x86/boot/bzImage is ready  (#24)
 ```
 
+## Build ixgbe device driver with `intLog` instrumented to capture fine-grained logs.:
+```
+$ make drivers/net/ethernet/intel/ixgbe/ixgbe.ko
+  CALL    scripts/checksyscalls.sh
+  CALL    scripts/atomic/check-atomics.sh
+  DESCEND  objtool
+  CC [M]  drivers/net/ethernet/intel/ixgbe/ixgbe_main.o
+  CC [M]  drivers/net/ethernet/intel/ixgbe/ixgbe_common.o
+  CC [M]  drivers/net/ethernet/intel/ixgbe/ixgbe_ethtool.o
+  CC [M]  drivers/net/ethernet/intel/ixgbe/ixgbe_82599.o
+  CC [M]  drivers/net/ethernet/intel/ixgbe/ixgbe_82598.o
+  CC [M]  drivers/net/ethernet/intel/ixgbe/ixgbe_phy.o
+  CC [M]  drivers/net/ethernet/intel/ixgbe/ixgbe_sriov.o
+  CC [M]  drivers/net/ethernet/intel/ixgbe/ixgbe_mbx.o
+  CC [M]  drivers/net/ethernet/intel/ixgbe/ixgbe_x540.o
+  CC [M]  drivers/net/ethernet/intel/ixgbe/ixgbe_x550.o
+  CC [M]  drivers/net/ethernet/intel/ixgbe/ixgbe_lib.o
+  CC [M]  drivers/net/ethernet/intel/ixgbe/ixgbe_ptp.o
+  CC [M]  drivers/net/ethernet/intel/ixgbe/ixgbe_xsk.o
+  CC [M]  drivers/net/ethernet/intel/ixgbe/ixgbe_sysfs.o
+  CC [M]  drivers/net/ethernet/intel/ixgbe/ixgbe_debugfs.o
+  LD [M]  drivers/net/ethernet/intel/ixgbe/ixgbe.o
+  Building modules, stage 2.
+  MODPOST 1 modules
+  CC [M]  drivers/net/ethernet/intel/ixgbe/ixgbe.mod.o
+  LD [M]  drivers/net/ethernet/intel/ixgbe/ixgbe.ko
+  
+Use insmod to dynamically load ixgbe.ko into the kernel
+$ insmod drivers/net/ethernet/intel/ixgbe/ixgbe.ko
+```
+
 ## GRUB configuration
 To boot linux with its DVFS frequency governor disabled in order to *static* set DVFS, append the following line to your grub: `intel_pstate=disable cpufreq.off=1`
 
