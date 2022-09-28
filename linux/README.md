@@ -182,9 +182,24 @@ $ cat /proc/ixgbe_stats/core/1
 8 1 66 0 0 0 0 0 0 0 0 0 0 0 0 0 7422524584107323
 9 1 1458 0 0 0 0 0 0 0 0 0 0 0 0 0 7422524584176923
 ```
-##### `ixgbe_stats` layout
+##### `ixgbe_stats` data layout:
+
 **num**|RXdescriptor|RXbytes|TXdescriptor|TXbytes|Instructions|Cycles|Ref\_Cycles|LLC\_miss|c1|c1e|c3|c6|c7|Joules|RdtscTimestamp
 :-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:
+```
+num: current line entry in trace log
+RXdescriptor (Receive Descriptor): A data structure that points to memory location of received packet and other packet info such as length, etc.
+RXbytes (Receive Bytes): Number of bytes received
+TXdescriptor (Transmit Descriptor): A data structure that points to memory location of transmitted packet and other packet info such as length, etc.
+RXbytes (Transmit Bytes): Number of bytes transmitted
+Instructions: number of instructions used
+Cycles: number of CPU cycles, is impacted by different CPU frequency changes
+Ref_Cycles: number of CPU cycles, is NOT impacted by different CPU frequency changes, counts at fixed rate
+LLC_Miss: last-level cache miss
+c1, c1e, c3, c6, c7: number of different sleep states
+Joules: energy used from reading RAPL MSR
+RdtscTimestamp: per-core timestamp of when log entry was taken
+```
 
 ## GRUB configuration
 To boot linux with its DVFS frequency governor disabled in order to *static* set DVFS, append the following line to your grub: `intel_pstate=disable cpufreq.off=1`
