@@ -1,7 +1,7 @@
 [submodule "linux/linux"]
 	path = linux/linux
 	url = https://github.com/handong32/linux/
-	branch = cpuidle_changes
+	branch = intlog
 [submodule "ebbrt/EbbRT"]
 	path = ebbrt/EbbRT
 	url = https://github.com/handong32/EbbRT
