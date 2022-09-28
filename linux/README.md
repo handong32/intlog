@@ -4,9 +4,17 @@
 Modified for performance based off study [here](https://github.com/LinuxPerfStudy/LEBench)
 
 ## Build the bootable `bzImage`
-`
+```
 $ make -j bzImage
-`
+$ ...
+$ ...
+$ ...
+Setup is 16220 bytes (padded to 16384 bytes).
+System is 8901 kB
+CRC 66a5975b
+Kernel: arch/x86/boot/bzImage is ready  (#24)
+```
+
 ## GRUB configuration
 To boot linux with its DVFS frequency governor disabled in order to *static* set DVFS, append the following line to your grub: `intel_pstate=disable cpufreq.off=1`
 
