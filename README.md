@@ -20,4 +20,4 @@ A software-agnostic logging framework that exposes hardware-level controls which
   - `mcdsilo`: memcached with a transcational database (Silo)
     - ebbrt: `EbbRT` implementation of `memcached-silo` and scripts to run
     - linux: `Linux` implementation of `memcached-silo` and scripts to run
-- tools: Utilities and other guides for how to boot various OSes
+- `tools`: Utilities and other guides for how to boot various OSes
