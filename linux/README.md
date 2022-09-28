@@ -182,6 +182,9 @@ $ cat /proc/ixgbe_stats/core/1
 8 1 66 0 0 0 0 0 0 0 0 0 0 0 0 0 7422524584107323
 9 1 1458 0 0 0 0 0 0 0 0 0 0 0 0 0 7422524584176923
 ```
+##### `ixgbe_stats` layout
+**num**|RXdescriptor|RXbytes|TXdescriptor|TXbytes|Instructions|Cycles|Ref\_Cycles|LLC\_miss|c1|c1e|c3|c6|c7|Joules|RdtscTimestamp
+:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:
 
 ## GRUB configuration
 To boot linux with its DVFS frequency governor disabled in order to *static* set DVFS, append the following line to your grub: `intel_pstate=disable cpufreq.off=1`
