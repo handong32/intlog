@@ -1,4 +1,4 @@
-# Building Linux kernel 5.5
+# Building Linux kernel 5.5 and instrumenting `intLog` tracing framework
 
 ## Linux configuration file
 We use a specially modified `.config` to build Linux kernel that was optimized for performance, details based off study [here](https://github.com/LinuxPerfStudy/LEBench).
