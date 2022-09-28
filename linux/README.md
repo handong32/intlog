@@ -3,7 +3,7 @@
 ## .config file
 Modified for performance based off study [here](https://github.com/LinuxPerfStudy/LEBench)
 
-## Build the bootable `bzImage`
+## Build the Linux kernel image `bzImage`, sample output when it has completed successfully
 ```
 $ make -j bzImage
 $ ...
