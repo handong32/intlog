@@ -35,7 +35,24 @@ ip addr add ..
 ## Changes when moving from Linux 5.14 to Linux 5.15
 ```
 ## file_operations was deprecated?
-static const struct file_operations ct_file_ops -> static const struct proc_ops ct_file_ops
+static const struct file_operations ct_file_ops =
+{
+ .owner   = THIS_MODULE,
+ .open    = ct_open,
+ .read    = seq_read,
+ .llseek  = seq_lseek,
+ .release = seq_release
+};
+
+->
+
+static const struct proc_ops ct_file_ops =
+{
+ .proc_open    = ct_open,
+ .proc_read    = seq_read,
+ .proc_lseek  = seq_lseek,
+ .proc_release = seq_release
+};
 
 ## api changes
 proc_create(name, 0444, ixgbe_core_dir, &ct_file_ops, (void*)i) -> proc_create_data(name, 0444, ixgbe_core_dir, &ct_file_ops, (void*)i)
