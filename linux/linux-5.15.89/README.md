@@ -31,3 +31,12 @@ sudo insmod drivers/net/ethernet/intel/ixgbe/ixgbe.ko
 ip link set dev up
 ip addr add ..
 ```
+
+## Changes when moving from Linux 5.14 to Linux 5.15
+```
+## file_operations was deprecated?
+static const struct file_operations ct_file_ops -> static const struct proc_ops ct_file_ops
+
+## api changes
+proc_create(name, 0444, ixgbe_core_dir, &ct_file_ops, (void*)i) -> proc_create_data(name, 0444, ixgbe_core_dir, &ct_file_ops, (void*)i)
+```
