@@ -25,8 +25,16 @@ sudo reboot
 ```
 
 after rebooting
-
 ```
+# turns off hyperthreads because intlog only has 16 queues/cores
+echo off | sudo tee /sys/devices/system/cpu/smt/control
+# turns off turboboost
+echo "1" | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo
+
+# gets the modified intlog
+git clone https://github.com/handong32/intlog.git
+cp intlog/linux/linux-5.15.89/drivers/net/ linux-5.15.89/drivers/
+
 sudo insmod drivers/net/ethernet/intel/ixgbe/ixgbe.ko
 ip link set dev up
 ip addr add ..
