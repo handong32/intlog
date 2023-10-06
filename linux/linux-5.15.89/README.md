@@ -6,7 +6,7 @@ Follows from: `https://davidaugustat.com/linux/how-to-compile-linux-kernel-on-ub
 sudo apt install build-essential libncurses-dev bison flex libssl-dev libelf-dev fakeroot dwarves
 
 wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.15.89.tar.xz
-tar -xf linux-5.15.89.tar.gz
+tar -xf linux-5.15.89.tar.xz
 
 cd linux-5.15.89
 cp -v /boot/config-$(uname -r) .config
