@@ -141,12 +141,13 @@ static void *ct_next(struct seq_file *s, void *v, loff_t *pos)
   il= &ixgbe_logs[id];
   
   spos = v;
-  // to check we aren't printing a log entry beyond itr_cnt
-  if((unsigned int)(*pos) >= (unsigned int)(il->itr_cnt))
-    return NULL;
 
   // increment to next log entry
   *pos = ++*spos;
+	
+  // to check we aren't printing a log entry beyond itr_cnt
+  if((unsigned int)(*pos) >= (unsigned int)(il->itr_cnt))
+    return NULL;
   
   return spos;
 }
