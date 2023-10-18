@@ -30,10 +30,12 @@ after rebooting
 echo off | sudo tee /sys/devices/system/cpu/smt/control
 # turns off turboboost
 echo "1" | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo
+# remmove mlx4 module
+sudo rmmod mlx4_core
 
 # gets the modified intlog
 git clone https://github.com/handong32/intlog.git
-cp intlog/linux/linux-5.15.89/drivers/net/ linux-5.15.89/drivers/
+cp -r ~/intlog/linux/linux-5.15.89/drivers/net/ ~/linux-5.15.89/drivers/
 
 # build ixgbe.ko
 cd linux-5.15.89
@@ -65,7 +67,7 @@ hand32@Mapper10-2:~/linux-5.15.89$ ip a
 3: eno2: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN group default qlen 1000
     link/ether f0:4d:a2:73:fb:7c brd ff:ff:ff:ff:ff:ff
     altname enp2s0f3
-hand32@Mapper10-2:~/linux-5.15.89$ sudo insmod drivers/net/ethernet/intel/ixgbe/ixgbe.ko
+hand32@Mapper10-2:~/linux-5.15.89$ sudo insmod ~/linux-5.15.89/drivers/net/ethernet/intel/ixgbe/ixgbe.ko
 hand32@Mapper10-2:~/linux-5.15.89$ ip a
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
