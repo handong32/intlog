@@ -26,6 +26,7 @@ sudo reboot
 
 after rebooting
 ```
+# need to rerun setup.sh and msr_setup.sh from experiment-scripts for flink
 # turns off hyperthreads because intlog only has 16 queues/cores
 echo off | sudo tee /sys/devices/system/cpu/smt/control
 # turns off turboboost
