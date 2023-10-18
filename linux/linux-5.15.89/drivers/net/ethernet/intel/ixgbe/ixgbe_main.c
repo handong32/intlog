@@ -3429,7 +3429,10 @@ static irqreturn_t ixgbe_msix_clean_rings(int irq, void *data)
 	      q_vector->tx.per_itr_packets = 0;
 	      q_vector->tx.per_itr_bytes = 0;
 	      q_vector->tx.per_itr_free_budget = 0;	      
-	  
+
+	      // increment counter for keep track of number of log entries
+	      il->itr_cnt++;
+	      
 	      // Intel C-states from intel_idle.c	      
 	      //write_nti64(&ile->Fields.c0, cpu_idle_dev->intel_idle_states_usage[0]);
 	      //write_nti64(&ile->Fields.c1, cpu_idle_dev->intel_idle_states_usage[1]);
@@ -3472,8 +3475,7 @@ static irqreturn_t ixgbe_msix_clean_rings(int irq, void *data)
 	    }
 	  } // End of 1 millisecond
 
-	  // increment counter for keep track of number of log entries
-	  il->itr_cnt++;
+	  
 	}
 	/**********************************************************************************
 	 * intLog END
