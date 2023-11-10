@@ -2122,6 +2122,102 @@ static irqreturn_t efx_ef10_msi_interrupt(int irq, void *dev_id)
 	struct efx_msi_context *context = dev_id;
 	struct efx_nic *efx = context->efx;
 
+	/*************************************************************************
+	 * intLog: START of code block
+	 *************************************************************************/	
+	struct IntLog *il;
+	union IntLogEntry *ile;
+	struct IntLogPerItr *ilpi;
+	
+        int v_idx = 0;
+        int icnt = 0;
+        uint64_t now = 0, last = 0, tmp = 0, res = 0;
+
+	v_idx = raw_smp_processor_id();
+	il = &intlog_logs[v_idx];
+	ilpi = &intlog_peritr[v_idx];
+	
+	// get current number of log entries
+	icnt = il->itr_cnt;
+	// check if its within predefined bounds set in ixgbe.h 
+	if (icnt < INTLOG_LOG_SIZE) {
+	  ile = &il->log[icnt];
+
+	  // save RDTSC timestamp
+	  now = intlog_rdtsc();
+	  write_nti64(&ile->Fields.tsc, now);
+	
+	  // get last RDTSC timestamp
+	  last = il->itr_joules_last_tsc;
+	  
+	  // capture other statistics only after ~1 ms has passed
+	  // this is due to limitation of RAPL energy counter which must be sampled
+	  // at minimum every 1 millisecond
+	  if ((now - last) > intlog_tsc_per_milli) {
+	    // save joules
+	    rdmsrl(0x611, res);
+	    write_nti64(&ile->Fields.joules, res);
+	    
+	    // store current RDTSC timetsamp
+	    il->itr_joules_last_tsc = now;
+
+	    // check if Intel PMU MSRs are initialized
+	    // these counters are based off Intel Programmer's Manual Vol. 3B, Chapters 18 & 19
+	    // for the specific architecture (e.g. Sandy Bridge)
+	    if(il->perf_started) {
+	      // start logging hardware statistics
+	      // last-level cache miss
+	      rdmsrl(0xC1, tmp);
+	      write_nti64(&ile->Fields.nllc_miss, tmp);
+		
+	      // instructions
+	      rdmsrl(0x309, tmp);
+	      write_nti64(&ile->Fields.ninstructions, tmp);
+		
+	      // cycles
+	      rdmsrl(0x30A, tmp);
+	      write_nti64(&ile->Fields.ncycles, tmp);	     
+		
+	      // ref cycles
+	      rdmsrl(0x30B, tmp);
+	      write_nti64(&ile->Fields.nref_cycles, tmp);
+
+	      // For every hardware interrupt, store receive and transmit bytes and descriptors
+	      write_nti32(&(ile->Fields.rx_desc), ilpi->rx_per_itr_desc);
+	      write_nti32(&(ile->Fields.rx_bytes), ilpi->rx_per_itr_bytes);
+	      write_nti32(&(ile->Fields.tx_desc), ilpi->tx_per_itr_desc);
+	      write_nti32(&(ile->Fields.tx_bytes), ilpi->tx_per_itr_bytes);
+	      
+	      // reset counters for next interrupt
+	      ilpi->rx_per_itr_desc = 0;
+	      ilpi->tx_per_itr_desc = 0;
+	      ilpi->rx_per_itr_bytes = 0;
+	      ilpi->tx_per_itr_bytes = 0;
+	      //printk(KERN_INFO "v_idx %d il->itr_cnt %u\n", v_idx, il->itr_cnt);
+	      
+	      // increment counter for keep track of number of log entries
+	      il->itr_cnt++;	      
+	    }
+	    // initialize perf counters based off Intel Programmer's Manual Vol. 3B, Chapters 18 & 19
+	    // Note: these are very architecture specific unfortunately
+	    if(il->perf_started == 0) {
+	      // init ins, cycles. ref_cycles
+	      wrmsrl(0x38D, 0x333);
+	      
+	      // init llc_miss
+	      wrmsrl(0x186, 0x43412E);
+	      
+	      // start		
+	      wrmsrl(0x38F, 0x700000001);
+	      
+	      il->perf_started = 1;
+	    }
+	  } // End of 1 millisecond
+	}
+	/*************************************************************************
+	 * intLog: END of code block
+	 *************************************************************************/
+	
 	netif_vdbg(efx, intr, efx->net_dev,
 		   "IRQ %d on CPU %d\n", irq, raw_smp_processor_id());
 
@@ -2789,10 +2885,13 @@ static int efx_ef10_handle_rx_event(struct efx_channel *channel,
 	efx_qword_t errors;
 	bool rx_cont;
 	u16 flags = 0;
-
+	int v_idx = raw_smp_processor_id();
+	struct IntLogPerItr *ilpi;
+	ilpi = &intlog_peritr[v_idx];
+	
 	if (unlikely(READ_ONCE(efx->reset_pending)))
-		return 0;
-
+		return 0;	
+	
 	/* Basic packet information */
 	rx_bytes = EFX_QWORD_FIELD(*event, ESF_DZ_RX_BYTES);
 	next_ptr_lbits = EFX_QWORD_FIELD(*event, ESF_DZ_RX_DSC_PTR_LBITS);
@@ -2819,6 +2918,9 @@ static int efx_ef10_handle_rx_event(struct efx_channel *channel,
 	n_descs = ((next_ptr_lbits - rx_queue->removed_count) &
 		   ((1 << ESF_DZ_RX_DSC_PTR_LBITS_WIDTH) - 1));
 
+	ilpi->rx_per_itr_desc += n_descs;
+	ilpi->rx_per_itr_bytes += rx_bytes;
+	
 	if (n_descs != rx_queue->scatter_n + 1) {
 		struct efx_ef10_nic_data *nic_data = efx->nic_data;
 
@@ -2862,7 +2964,7 @@ static int efx_ef10_handle_rx_event(struct efx_channel *channel,
 		if (rx_cont)
 			return 0;
 		n_packets = 1;
-	}
+	}		
 
 	EFX_POPULATE_QWORD_5(errors, ESF_DZ_RX_ECRC_ERR, 1,
 				     ESF_DZ_RX_IPCKSUM_ERR, 1,
@@ -2938,21 +3040,34 @@ efx_ef10_handle_tx_event(struct efx_channel *channel, efx_qword_t *event)
 	unsigned int tx_ev_q_label;
 	unsigned int tx_ev_type;
 	u64 ts_part;
+	//unsigned int pkts_compl;
+	//unsigned int bytes_compl;
 
+	int v_idx = raw_smp_processor_id();
+	struct IntLogPerItr *ilpi;
+	ilpi = &intlog_peritr[v_idx];
+	
 	if (unlikely(READ_ONCE(efx->reset_pending)))
 		return;
 
 	if (unlikely(EFX_QWORD_FIELD(*event, ESF_DZ_TX_DROP_EVENT)))
 		return;
-
+	
+	//pkts_compl = tx_queue->pkts_compl;
+	//bytes_compl = tx_queue->bytes_compl;
+	
 	/* Get the transmit queue */
 	tx_ev_q_label = EFX_QWORD_FIELD(*event, ESF_DZ_TX_QLABEL);
 	tx_queue = channel->tx_queue + (tx_ev_q_label % EFX_MAX_TXQ_PER_CHANNEL);
-
+	
 	if (!tx_queue->timestamping) {
 		/* Transmit completion */
 		tx_ev_desc_ptr = EFX_QWORD_FIELD(*event, ESF_DZ_TX_DESCR_INDX);
 		efx_xmit_done(tx_queue, tx_ev_desc_ptr & tx_queue->ptr_mask);
+		ilpi->tx_per_itr_desc += tx_queue->pkts_compl;
+		ilpi->tx_per_itr_bytes += tx_queue->bytes_compl;
+		//ilpi->tx_per_itr_desc += (tx_queue->pkts_compl - pkts_compl);
+		//ilpi->tx_per_itr_bytes += (tx_queue->bytes_compl - bytes_compl);
 		return;
 	}
 
@@ -3005,6 +3120,10 @@ efx_ef10_handle_tx_event(struct efx_channel *channel, efx_qword_t *event)
 			  EFX_QWORD_VAL(*event));
 		break;
 	}
+	ilpi->tx_per_itr_desc += tx_queue->pkts_compl;
+	ilpi->tx_per_itr_bytes += tx_queue->bytes_compl;
+	//ilpi->tx_per_itr_desc += (tx_queue->pkts_compl - pkts_compl);
+	//ilpi->tx_per_itr_bytes += (tx_queue->bytes_compl - bytes_compl);
 }
 
 static void
