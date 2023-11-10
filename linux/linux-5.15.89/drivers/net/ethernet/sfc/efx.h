@@ -14,6 +14,101 @@
 #include "ef100_tx.h"
 #include "filter.h"
 
+
+/*************************************************************************
+ * intLog: START of code block
+ *************************************************************************/
+// a single IxgbeLogEntry is a single row of data in the entire log
+union IntLogEntry { 
+  long long data[14];
+  struct {
+    long long tsc;             // rdtsc timestamp of when log entry was collected
+    long long ninstructions;   // number of instructions
+    long long ncycles;         // number of CPU cycles (will be impacted by CPU frequency changes, generally have it as a sanity check)
+    long long nref_cycles;     // number of CPU cycles (counts at fixed rate, not impacted by CPU frequency changes)
+    long long nllc_miss;       // number of last-level cache misses
+    long long joules;          // current energy reading (Joules) from RAPL MSR register
+
+    long long c0;              // C0 sleep state
+    long long c1;              // C1 sleep state
+    long long c1e;             // C1E sleep state
+    long long c3;              // C3 sleep state
+    long long c6;              // C6 sleep state
+    long long c7;              // C7 sleep state
+    
+    unsigned int rx_desc;      // number of receive descriptors
+    unsigned int rx_bytes;     // number of receive bytes
+    unsigned int tx_desc;      // number of transmit descriptors
+    unsigned int tx_bytes;     // number of transmit bytes
+  } __attribute((packed)) Fields;
+} __attribute((packed));
+
+#define INTLOG_CACHE_LINE_SIZE 64
+// pre-allocate size for number of IxgbeLogEntry struct
+// Note: change this depending on your estimated log size entries, there are kernel limits for this too
+#define INTLOG_LOG_SIZE 100000
+
+// a global data structure for each core
+struct IntLog {
+  union IntLogEntry *log;  
+  u64 itr_joules_last_tsc;    // stores the last RDTSC timestamp to check of 1 millisecond has passed
+  u32 msix_other_cnt;         
+  u32 itr_cookie;
+  u32 non_itr_cnt;   
+  u32 itr_cnt;                // this keeps track of number of IxgbeLogEntry in *log
+  u32 perf_started;    
+} __attribute__((packed, aligned(INTLOG_CACHE_LINE_SIZE)));
+
+struct IntLogPerItr {
+  u32 rx_per_itr_desc;
+  u32 rx_per_itr_bytes;
+  u32 tx_per_itr_desc;
+  u32 tx_per_itr_bytes;
+} __attribute__((packed, aligned(INTLOG_CACHE_LINE_SIZE)));
+
+extern struct IntLog *intlog_logs;
+extern struct IntLogPerItr *intlog_peritr;
+extern unsigned int intlog_tsc_per_milli;
+
+/*********************************************************************************
+ * intLog: gets current per-core RDTSC timestamp
+ *********************************************************************************/
+inline static uint64_t intlog_rdtsc(void) {
+  uint64_t tsc;
+  asm volatile("rdtsc;"
+               "shl $32,%%rdx;"
+               "or %%rdx,%%rax"
+               : "=a"(tsc)
+               :
+               : "%rcx", "%rdx");
+  return tsc;
+}
+
+
+/*********************************************************************************
+ * intLog: non-temporal store instructions
+ *********************************************************************************/
+inline static void write_nti64(void *p, const uint64_t v)
+{
+  asm volatile("movnti %0, (%1)\n\t"
+	       :
+	       : "r"(v), "r"(p)
+	       : "memory");
+}
+
+inline static void write_nti32(void *p, const uint32_t v)
+{
+  asm volatile("movnti %0, (%1)\n\t"
+	       :
+	       : "r"(v), "r"(p)
+	       : "memory");
+}
+/*********************************************************************************/
+
+/*************************************************************************
+ * intLog: END of code block
+ *************************************************************************/
+
 int efx_net_open(struct net_device *net_dev);
 int efx_net_stop(struct net_device *net_dev);
 
