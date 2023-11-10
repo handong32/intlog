@@ -63,6 +63,158 @@ module_param(efx_separate_tx_channels, bool, 0444);
 MODULE_PARM_DESC(efx_separate_tx_channels,
 		 "Use separate channels for TX and RX");
 
+/*************************************************************************
+ * intLog: to create procfs: /proc/intlog_stats/core/N
+ *************************************************************************/
+#include <linux/stat.h>
+#include <linux/string.h>
+#include <linux/sysfs.h>
+#include <uapi/linux/stat.h> /* S_IRUSR, S_IWUSR  */
+#include <linux/proc_fs.h>
+#include <linux/seq_file.h> /* seq_read, seq_lseek, single_release */
+
+/*************************************************************************
+ * intLog: access tsc tick rate
+ *************************************************************************/
+extern unsigned int tsc_khz;
+// store RDTSC hardware information
+unsigned int intlog_tsc_per_milli;
+// per core data structure for logging
+struct IntLog *intlog_logs;
+struct IntLogPerItr *intlog_peritr;
+
+static struct proc_dir_entry *intlog_stats_dir;
+static struct proc_dir_entry *intlog_core_dir;
+
+/*********************************************************************************
+ * intLog: seq_file interfaces needed to create procfs: /proc/intlog_stats/core/N
+ *         (https://www.kernel.org/doc/html/latest/filesystems/seq\_file.html)
+ *********************************************************************************/
+static void *ct_start(struct seq_file *s, loff_t *pos)
+{
+  loff_t *spos;
+  struct IntLog *il;
+  unsigned long id = (unsigned long)s->private;
+
+  // id maps to the specific core
+  il= &intlog_logs[id];
+  //printk(KERN_INFO "ct_start id=%ld\n", id);
+  
+  // clear out the entries in all the logs
+  spos = kmalloc(sizeof(loff_t), GFP_KERNEL);
+  if (!spos || (unsigned int)(*pos) >= (unsigned int)(il->itr_cnt)) {
+    memset(intlog_logs[id].log, 0, (sizeof(union IntLogEntry) *  INTLOG_LOG_SIZE));
+    intlog_logs[id].itr_joules_last_tsc = 0;
+    intlog_logs[id].msix_other_cnt = 0;
+    intlog_logs[id].itr_cookie = 0;
+    intlog_logs[id].non_itr_cnt = 0;
+    intlog_logs[id].itr_cnt = 0;
+    intlog_logs[id].perf_started = 0;    
+    return NULL;
+  }
+  *spos = *pos;
+  return spos;
+}
+
+// this gets called automatically as part of ct_show
+static void *ct_next(struct seq_file *s, void *v, loff_t *pos)
+{
+  loff_t *spos;
+  unsigned long id = (unsigned long)s->private;
+  //printk(KERN_INFO "ct_next id=%ld\n", id);
+  struct IntLog *il;
+  il= &intlog_logs[id];
+  
+  spos = v;
+
+  // increment to next log entry
+  *pos = ++*spos;
+	
+  // to check we aren't printing a log entry beyond itr_cnt
+  if((unsigned int)(*pos) >= (unsigned int)(il->itr_cnt))
+    return NULL;
+  
+  return spos;
+}
+
+/* Return 0 means success, SEQ_SKIP ignores previous prints, negative for error. */
+static int ct_show(struct seq_file *s, void *v)
+{
+  loff_t *spos;
+  unsigned long id = (unsigned long)s->private; // get the core id
+  //printk(KERN_INFO "ct_show id=%ld\n", id);
+  struct IntLog *il;
+  union IntLogEntry *ile;
+  
+  spos = v;  
+  il= &intlog_logs[id]; // for the core
+  ile = &il->log[(int)*spos]; // for the specific log entry in each core
+
+  // write to entry in procfs
+  if(ile->Fields.tsc != 0) {
+    seq_printf(s, "%u %u %u %u %u %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu\n",
+	       (unsigned int)*spos,
+	       ile->Fields.rx_desc, ile->Fields.rx_bytes,
+	       ile->Fields.tx_desc, ile->Fields.tx_bytes,
+	       ile->Fields.ninstructions,
+	       ile->Fields.ncycles,
+	       ile->Fields.nref_cycles,
+	       ile->Fields.nllc_miss,
+	       ile->Fields.c0,
+	       ile->Fields.c1,
+	       ile->Fields.c1e,
+	       ile->Fields.c3,
+	       ile->Fields.c6,
+	       ile->Fields.c7,
+	       ile->Fields.joules,
+	       ile->Fields.tsc);
+  }
+
+  return 0;
+}
+
+static void ct_stop(struct seq_file *s, void *v)
+{
+  kfree(v);  
+}
+
+static struct seq_operations my_seq_ops =
+{
+ .next  = ct_next,
+ .show  = ct_show,
+ .start = ct_start,
+ .stop  = ct_stop,
+};
+
+static int ct_open(struct inode *inode, struct file *file)
+{
+  int ret;
+  
+  ret = seq_open(file, &my_seq_ops);
+  if(ret == 0) {
+    struct seq_file *m = file->private_data;
+    m->private = PDE_DATA(inode);
+  }
+  
+  return ret; 
+}
+
+static const struct proc_ops ct_file_ops =
+{
+ .proc_open    = ct_open,
+ .proc_read    = seq_read,
+ .proc_lseek  = seq_lseek,
+ .proc_release = seq_release
+};
+/*************************************************************************
+ * End of seq_file
+ *************************************************************************/
+
+/*************************************************************************
+ * intLog: END of code block
+ *************************************************************************/
+
+
 /* Initial interrupt moderation settings.  They can be modified after
  * module load with ethtool.
  *
@@ -938,13 +1090,51 @@ static void efx_probe_vpd_strings(struct efx_nic *efx)
  */
 static int efx_pci_probe_main(struct efx_nic *efx)
 {
-	int rc;
-
+        int rc;
+        uint64_t now;
+	unsigned int i;
+	
 	/* Do start-of-day initialisation */
 	rc = efx_probe_all(efx);
 	if (rc)
 		goto fail1;
 
+	/*************************************************************************
+	 * intLog: START of code block
+	 *************************************************************************/
+	now = intlog_rdtsc();
+	printk(KERN_INFO "***************** intLog INIT ***********************\n");
+	printk(KERN_INFO "%s\n", __FUNCTION__);
+	printk(KERN_INFO "num_online_cpus: %u\n", num_online_cpus());
+	intlog_tsc_per_milli = tsc_khz;
+	printk(KERN_INFO "+++++ intlog_open tsc_khz = %u %u now=%llu ++++++\n", tsc_khz, intlog_tsc_per_milli, now);
+
+	// struct IntLog *intlog_log;
+	intlog_logs = (struct IntLog*)vmalloc(sizeof(struct IntLog) * num_online_cpus());
+	printk(KERN_INFO "intlog_logs addr=%p\n", (void*)intlog_logs);
+
+	//extern struct IntLogPerItr *intlog_peritr;
+	intlog_peritr = (struct IntLogPerItr*)vmalloc(sizeof(struct IntLogPerItr) * num_online_cpus());
+	printk(KERN_INFO "intlog_peritr addr=%p\n", (void*)intlog_peritr);
+	memset(intlog_peritr, 0, (sizeof(struct IntLogPerItr) * num_online_cpus()));
+	
+	for(i = 0; i < num_online_cpus(); i++) {
+	  // pre-allocate memory for trace logs
+	  intlog_logs[i].log = (union IntLogEntry *)vmalloc(sizeof(union IntLogEntry) * INTLOG_LOG_SIZE);
+	  printk(KERN_INFO "intlog_logs[%u].log vmalloc size=%lu addr=%p\n", i, (sizeof(union IntLogEntry) * INTLOG_LOG_SIZE), (void*)(intlog_logs[i].log));
+	  memset(intlog_logs[i].log, 0, (sizeof(union IntLogEntry) * INTLOG_LOG_SIZE));
+
+	  intlog_logs[i].itr_joules_last_tsc = 0;
+	  intlog_logs[i].msix_other_cnt = 0;
+	  intlog_logs[i].itr_cookie = 0;
+	  intlog_logs[i].non_itr_cnt = 0;
+	  intlog_logs[i].itr_cnt = 0;
+	  intlog_logs[i].perf_started = 0;  	
+	}
+	/*************************************************************************
+	 * intLog: END of code block
+	 *************************************************************************/
+	
 	efx_init_napi(efx);
 
 	down_write(&efx->filter_sem);
@@ -1286,7 +1476,8 @@ static struct pci_driver efx_pci_driver = {
 static int __init efx_init_module(void)
 {
 	int rc;
-
+	unsigned int i;
+	
 	printk(KERN_INFO "Solarflare NET driver\n");
 
 	rc = register_netdevice_notifier(&efx_netdev_notifier);
@@ -1311,6 +1502,30 @@ static int __init efx_init_module(void)
 	if (rc < 0)
 		goto err_pci_ef100;
 
+	/**********************************************************************************
+	 * intLog: create /proc/intlog_stats/core/N
+	 **********************************************************************************/
+	intlog_stats_dir = proc_mkdir("intlog_stats", NULL);
+	if(!intlog_stats_dir) {
+	  printk(KERN_ERR "Couldn't create base directory /proc/intlog_stats/\n");
+	  return -ENOMEM;
+	}	
+	intlog_core_dir = proc_mkdir("core", intlog_stats_dir);
+	if(!intlog_core_dir) {
+	  printk(KERN_ERR "Couldn't create base directory /proc/intlog_stats/core/\n");
+	  return -ENOMEM;
+	}
+	// for each core
+	for(i=0;i<num_online_cpus();i++) {
+	  printk(KERN_INFO "proc_create %u\n", i);
+	  char name[4];	  
+	  sprintf(name, "%u", i);
+	  if(!proc_create_data(name, 0444, intlog_core_dir, &ct_file_ops, (void*)i)) {
+	    printk(KERN_ERR "Couldn't create base directory /proc/intlog_stats/core/%u\n", i);
+	  }     
+	}
+	printk(KERN_INFO "Successfully loaded /proc/intlog_stats/\n");
+	/**********************************************************************************/
 	return 0;
 
  err_pci_ef100:
@@ -1329,8 +1544,26 @@ static int __init efx_init_module(void)
 
 static void __exit efx_exit_module(void)
 {
-	printk(KERN_INFO "Solarflare NET driver unloading\n");
+        unsigned int i;
+        printk(KERN_INFO "Solarflare NET driver unloading\n");
 
+	/*************************************************************************
+	 * intLog: START of code block
+	 *************************************************************************/
+	printk(KERN_INFO "vfree intlog_logs\n");
+	for(i = 0; i < num_online_cpus(); i++) {	  
+	  vfree(intlog_logs[i].log);
+	}
+	vfree(intlog_logs);
+	vfree(intlog_peritr);
+	/**********************************************************************************
+	 * intLog: remove procfs entries
+	 **********************************************************************************/
+	remove_proc_subtree("intlog_stats", NULL);
+  
+	/*************************************************************************
+	 * intLog: END of code block
+	 *************************************************************************/
 	pci_unregister_driver(&ef100_pci_driver);
 	pci_unregister_driver(&efx_pci_driver);
 	efx_destroy_reset_workqueue();
