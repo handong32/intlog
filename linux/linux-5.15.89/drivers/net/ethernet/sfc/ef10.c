@@ -2176,27 +2176,13 @@ static irqreturn_t efx_ef10_msi_interrupt(int irq, void *dev_id)
 		
 	      // cycles
 	      rdmsrl(0x30A, tmp);
-	      write_nti64(&ile->Fields.ncycles, tmp);	     
+	      write_nti64(&ile->Fields.ncycles, tmp);   
 		
 	      // ref cycles
 	      rdmsrl(0x30B, tmp);
-	      write_nti64(&ile->Fields.nref_cycles, tmp);
-
-	      // For every hardware interrupt, store receive and transmit bytes and descriptors
-	      write_nti32(&(ile->Fields.rx_desc), ilpi->rx_per_itr_desc);
-	      write_nti32(&(ile->Fields.rx_bytes), ilpi->rx_per_itr_bytes);
-	      write_nti32(&(ile->Fields.tx_desc), ilpi->tx_per_itr_desc);
-	      write_nti32(&(ile->Fields.tx_bytes), ilpi->tx_per_itr_bytes);
-	      
-	      // reset counters for next interrupt
-	      ilpi->rx_per_itr_desc = 0;
-	      ilpi->tx_per_itr_desc = 0;
-	      ilpi->rx_per_itr_bytes = 0;
-	      ilpi->tx_per_itr_bytes = 0;
+	      write_nti64(&ile->Fields.nref_cycles, tmp);	      
 	      //printk(KERN_INFO "v_idx %d il->itr_cnt %u\n", v_idx, il->itr_cnt);
-	      
-	      // increment counter for keep track of number of log entries
-	      il->itr_cnt++;	      
+	      	      
 	    }
 	    // initialize perf counters based off Intel Programmer's Manual Vol. 3B, Chapters 18 & 19
 	    // Note: these are very architecture specific unfortunately
@@ -2213,6 +2199,20 @@ static irqreturn_t efx_ef10_msi_interrupt(int irq, void *dev_id)
 	      il->perf_started = 1;
 	    }
 	  } // End of 1 millisecond
+
+	  // For every hardware interrupt, store receive and transmit bytes and descriptors
+	  write_nti32(&(ile->Fields.rx_desc), ilpi->rx_per_itr_desc);
+	  write_nti32(&(ile->Fields.rx_bytes), ilpi->rx_per_itr_bytes);
+	  write_nti32(&(ile->Fields.tx_desc), ilpi->tx_per_itr_desc);
+	  write_nti32(&(ile->Fields.tx_bytes), ilpi->tx_per_itr_bytes);
+	  
+	  // reset counters for next interrupt
+	  ilpi->rx_per_itr_desc = 0;
+	  ilpi->tx_per_itr_desc = 0;
+	  ilpi->rx_per_itr_bytes = 0;
+	  ilpi->tx_per_itr_bytes = 0;
+	  // increment counter for keep track of number of log entries
+	  il->itr_cnt++;	      
 	}
 	/*************************************************************************
 	 * intLog: END of code block
@@ -2916,10 +2916,7 @@ static int efx_ef10_handle_rx_event(struct efx_channel *channel,
 		efx_ef10_handle_rx_wrong_queue(rx_queue, rx_queue_label);
 
 	n_descs = ((next_ptr_lbits - rx_queue->removed_count) &
-		   ((1 << ESF_DZ_RX_DSC_PTR_LBITS_WIDTH) - 1));
-
-	ilpi->rx_per_itr_desc += n_descs;
-	ilpi->rx_per_itr_bytes += rx_bytes;
+		   ((1 << ESF_DZ_RX_DSC_PTR_LBITS_WIDTH) - 1));	
 	
 	if (n_descs != rx_queue->scatter_n + 1) {
 		struct efx_ef10_nic_data *nic_data = efx->nic_data;
@@ -3016,7 +3013,9 @@ static int efx_ef10_handle_rx_event(struct efx_channel *channel,
 
 	rx_queue->scatter_n = 0;
 	rx_queue->scatter_len = 0;
-
+	ilpi->rx_per_itr_desc += n_descs;
+	ilpi->rx_per_itr_bytes += rx_bytes;
+	
 	return n_packets;
 }
 
@@ -3062,7 +3061,7 @@ efx_ef10_handle_tx_event(struct efx_channel *channel, efx_qword_t *event)
 	
 	if (!tx_queue->timestamping) {
 		/* Transmit completion */
-		tx_ev_desc_ptr = EFX_QWORD_FIELD(*event, ESF_DZ_TX_DESCR_INDX);
+	        tx_ev_desc_ptr = EFX_QWORD_FIELD(*event, ESF_DZ_TX_DESCR_INDX);
 		efx_xmit_done(tx_queue, tx_ev_desc_ptr & tx_queue->ptr_mask);
 		ilpi->tx_per_itr_desc += tx_queue->pkts_compl;
 		ilpi->tx_per_itr_bytes += tx_queue->bytes_compl;
@@ -3120,8 +3119,8 @@ efx_ef10_handle_tx_event(struct efx_channel *channel, efx_qword_t *event)
 			  EFX_QWORD_VAL(*event));
 		break;
 	}
-	ilpi->tx_per_itr_desc += tx_queue->pkts_compl;
-	ilpi->tx_per_itr_bytes += tx_queue->bytes_compl;
+	//ilpi->tx_per_itr_desc += tx_queue->pkts_compl;
+	//ilpi->tx_per_itr_bytes += tx_queue->bytes_compl;
 	//ilpi->tx_per_itr_desc += (tx_queue->pkts_compl - pkts_compl);
 	//ilpi->tx_per_itr_bytes += (tx_queue->bytes_compl - bytes_compl);
 }
