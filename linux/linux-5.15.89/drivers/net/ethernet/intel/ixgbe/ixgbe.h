@@ -579,7 +579,7 @@ union IxgbeLogEntry {
 #define IXGBE_CACHE_LINE_SIZE 64
 // pre-allocate size for number of IxgbeLogEntry struct
 // Note: change this depending on your estimated log size entries, there are kernel limits for this too
-#define IXGBE_LOG_SIZE 100000
+#define IXGBE_LOG_SIZE 1000000
 
 // a global data structure for each core
 struct IxgbeLog {
@@ -591,7 +591,8 @@ struct IxgbeLog {
   u32 itr_cnt;                // this keeps track of number of IxgbeLogEntry in *log
   u32 perf_started;    
 } __attribute__((packed, aligned(IXGBE_CACHE_LINE_SIZE)));
-extern struct IxgbeLog ixgbe_logs[16];
+//extern struct IxgbeLog ixgbe_logs[16];
+extern struct IxgbeLog *ixgbe_logs;
 extern unsigned int ixgbe_tsc_per_milli; 
 
 /*************************************************************************

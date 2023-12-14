@@ -95,7 +95,8 @@ extern unsigned int tsc_khz;
 // store RDTSC hardware information
 unsigned int ixgbe_tsc_per_milli;
 // per core data structure for logging
-struct IxgbeLog ixgbe_logs[16];
+//struct IxgbeLog ixgbe_logs[16];
+struct IxgbeLog *ixgbe_logs;
 /*************************************************************************/
 
 static struct proc_dir_entry *ixgbe_stats_dir;
@@ -7163,8 +7164,9 @@ int ixgbe_open(struct net_device *netdev)
 	//struct cpuidle_driver *drv = cpuidle_get_cpu_driver(dev);	
 
 	printk(KERN_INFO "************* intLog inits ***********************\n");
-	printk(KERN_INFO "ixgbe_open()\n");
-
+        printk(KERN_INFO "%s\n", __FUNCTION__);
+	printk(KERN_INFO "num_online_cpus: %u\n", num_online_cpus());
+	
 	// print Intel C-state information
 	/*printk(KERN_INFO "cpuidle stats state_count=%d\n", drv->state_count);
 	for(i=0;i<drv->state_count;i++) {
@@ -7172,9 +7174,11 @@ int ixgbe_open(struct net_device *netdev)
 		 i, drv->states[i].name,
 		 drv->states[i].exit_latency, drv->states[i].target_residency);
 	}*/
-
+	ixgbe_logs = (struct IxgbeLog*)vmalloc(sizeof(struct IxgbeLog) * num_online_cpus());
+	printk(KERN_INFO "ixgbe_logs addr=%p\n", (void*)ixgbe_logs);
+	
 	// for each core
-	for(i=0; i<16; i++) {
+	for(i=0; i<num_online_cpus(); i++) {
 	  // pre-allocate memory for trace logs
 	  ixgbe_logs[i].log = (union IxgbeLogEntry *)vmalloc(sizeof(union IxgbeLogEntry) * IXGBE_LOG_SIZE);	  
 	  printk(KERN_INFO "%d vmalloc size=%lu addr=%p\n", i, (sizeof(union IxgbeLogEntry) * IXGBE_LOG_SIZE), (void*)(ixgbe_logs[i].log));
@@ -7302,7 +7306,7 @@ int ixgbe_close(struct net_device *netdev)
 	/**********************************************************************************
 	 * intLog: free log memory
 	 **********************************************************************************/
-	for(i=0;i<16;i++) {
+	for(i=0;i<num_online_cpus();i++) {
 	  if(ixgbe_logs[i].log) {
 	    vfree(ixgbe_logs[i].log);
 	  }	  
@@ -11849,7 +11853,7 @@ static int __init ixgbe_init_module(void)
 	  return -ENOMEM;
 	}
 	// for each core
-	for(i=0;i<16;i++) {
+	for(i=0;i<num_online_cpus();i++) {
 	  printk(KERN_INFO "proc_create %ld\n", i);
 	  char name[4];	  
 	  sprintf(name, "%ld", i);	  
